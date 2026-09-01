@@ -49,7 +49,11 @@ class SimulariumAnalysis(AnalysisStep):
         position_field = cfg.get("position_field", _DEFAULT_POSITION_FIELD)
         time_field = cfg.get("time_field", _DEFAULT_TIME_FIELD)
 
-        times, frames = _rows_to_frames(rows, position_field, time_field)
+        times, frames = _rows_to_frames(
+            rows, position_field, time_field,
+            dedupe_times=cfg.get("dedupe_times", True),
+            drop_empty_leading=cfg.get("drop_empty_leading", True),
+        )
 
         box_size = cfg.get("box_size") or _infer_box_size(frames)
         out = write_simularium(
@@ -71,12 +75,20 @@ class SimulariumAnalysis(AnalysisStep):
         }
 
 
-def _rows_to_frames(rows, position_field, time_field):
+def _rows_to_frames(rows, position_field, time_field, *,
+                    dedupe_times=True, drop_empty_leading=True):
     """Split emitted rows into aligned ``(times, frames)``.
 
     Each row's ``position_field`` is a list of agent dicts; rows lacking it
     contribute an empty frame (a valid, agent-less timestep). ``time_field``
     supplies the timestamp, defaulting to the row index when absent.
+
+    Emitters commonly record the same timestep twice (once when the process
+    updates a store, once at the next tick boundary) and an empty state before
+    the first step. ``dedupe_times`` collapses consecutive rows sharing a
+    timestamp, keeping the last (the settled state); ``drop_empty_leading``
+    strips agent-less frames at the head of the trajectory. Both default on —
+    they make viewer playback match wall-clock without altering the physics.
     """
     times: list[float] = []
     frames: list[list[dict]] = []
@@ -86,9 +98,18 @@ def _rows_to_frames(rows, position_field, time_field):
         # Tolerate a single agent dict emitted un-listed.
         if isinstance(agents, dict):
             agents = [agents]
+        t = float(row[time_field]) if row.get(time_field) is not None else float(i)
+        if dedupe_times and times and t == times[-1]:
+            frames[-1] = list(agents)          # keep the last state at this time
+            continue
+        times.append(t)
         frames.append(list(agents))
-        t = row.get(time_field)
-        times.append(float(t) if t is not None else float(i))
+
+    if drop_empty_leading:
+        while len(frames) > 1 and not frames[0]:
+            frames.pop(0)
+            times.pop(0)
+
     return times, frames
 
 
