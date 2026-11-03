@@ -1,7 +1,7 @@
 """``SimulariumAnalysis`` — a post-sim Analysis that converts a run's emitted
 molecule positions into a Simularium file.
 
-It subclasses ``viva_superpowers.post_sim.AnalysisStep``, so it plugs into the
+It subclasses ``discovery_engine.post_sim.AnalysisStep``, so it plugs into the
 study Evaluate-stage flush exactly like any other analysis: ``ResultsStep``
 hands it the run's emitted rows and it emits an artifact. Each emitted row is
 one timepoint carrying a ``time`` and a ``molecule_positions`` list of point
@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from viva_superpowers.post_sim import AnalysisStep
+from discovery_engine.post_sim import AnalysisStep
 
 from viva_simularium.writer import write_simularium
 
