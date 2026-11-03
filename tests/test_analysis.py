@@ -15,7 +15,7 @@ ROWS = [
 
 
 def test_registers_as_analysis():
-    from viva_superpowers.post_sim import ANALYSIS_REGISTRY, POST_SIM_REGISTRY
+    from discovery_engine.post_sim import ANALYSIS_REGISTRY, POST_SIM_REGISTRY
     assert ANALYSIS_REGISTRY.get("simularium") is SimulariumAnalysis
     assert POST_SIM_REGISTRY["simularium"]["kind"] == "analysis"
 

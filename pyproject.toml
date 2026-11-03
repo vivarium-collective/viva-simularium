@@ -12,6 +12,7 @@ dependencies = [
     "simulariumio",
     "numpy",
     "viva-superpowers",
+    "viva-discovery-engine>=0.1,<0.2",
     "process-bigraph>=0.0.10",
     "bigraph-schema",
 ]
